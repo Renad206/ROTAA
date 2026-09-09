@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="hero schedule-hero">
+  <div>
+    <div class="eyebrow">WEEKLY SCHEDULE</div>
+    <h1>الجدول العام</h1>
+    <p>عرض أسبوعي واضح للمعلمات والحصص، مع تعديل مباشر من نفس الجدول.</p>
+  </div>
+  <div class="actions no-print">
+    <form method="post" action="/generate"><button class="btn">✦ توزيع تلقائي</button></form>
+    <form method="post" action="/schedule/rebuild" onsubmit="return confirm('إعادة بناء الجدول بالكامل؟')"><button class="btn alt">↻ إعادة بناء</button></form>
+    <form method="post" action="/schedule/delete" onsubmit="return confirm('حذف الجدول بالكامل؟')"><button class="btn danger">⌫ حذف الجدول</button></form>
+    <a class="btn alt" href="/import-timetable">رفع Excel</a>
+    <form method="post" action="/schedule/approve"><button class="btn good">اعتماد الجدول</button></form>
+    <a class="btn alt" href="/export.xlsx">تصدير Excel</a>
+    <button class="btn alt" onclick="window.print()">طباعة / PDF</button>
+  </div>
+</div>
+
+{% if message %}<div class="notice">{{message}}</div>{% endif %}
+
+<div class="paper-toolbar no-print">
+  <span>اضغطي على <b>+</b> داخل أي خانة فارغة لإضافة حصة. ويمكن تثبيت أو حذف الحصة من داخل الخانة.</span>
+</div>
+
+<section class="card paper-card">
+<div class="paper-scroll">
+<table class="paper-schedule">
+  <thead>
+    <tr class="paper-days">
+      <th class="paper-teacher-head" rowspan="2">اسم المعلمة</th>
+      <th class="paper-count-head" rowspan="2">عدد الحصص</th>
+      {% for d in days %}
+        <th colspan="7" class="paper-day-head">{{d}}</th>
+        {% if not loop.last %}<th rowspan="2" class="prayer-head"><span>فسحة الصلاة</span></th>{% endif %}
+      {% endfor %}
+    </tr>
+    <tr class="paper-periods">
+      {% for d in days %}
+        {% for p in range(1,8) %}<th>{{p}}</th>{% endfor %}
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+  {% for t in teachers %}
+    <tr>
+      <th class="paper-teacher-cell"><div class="teacher-paper-name">{{t.name}}</div></th>
+      <td class="paper-count-cell">{{t.distributed}}</td>
+      {% for d in range(5) %}
+        {% for p in range(1,8) %}
+          {% set l=teacher_board[t.id][(d,p)] %}
+          <td class="paper-slot">
+            {% if l %}
+              <div class="paper-lesson {% if l.locked %}locked{% endif %}">
+                <div class="paper-class">{{l.class_name}}</div>
+                <div class="paper-subject">{{l.subject_name}}</div>
+                <div class="paper-actions no-print">
+                  <form method="post" action="/lesson/lock/{{l.schedule_id}}"><button type="submit" title="تثبيت / إلغاء التثبيت">{% if l.locked %}🔒{% else %}📌{% endif %}</button></form>
+                  <form method="post" action="/lesson/delete/{{l.schedule_id}}" onsubmit="return confirm('حذف هذه الحصة؟')"><button type="submit" title="حذف">×</button></form>
+                </div>
+              </div>
+            {% else %}
+              <button class="paper-add no-print" type="button" onclick="openAdd({{t.id}},{{d}},{{p}},{{t.name|tojson}})">+</button>
+            {% endif %}
+          </td>
+        {% endfor %}
+        {% if d < 4 %}<td class="prayer-cell"></td>{% endif %}
+      {% endfor %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</section>
+
+<div id="addModal" class="modal no-print" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div><div class="eyebrow">QUICK EDIT</div><h2>إضافة حصة</h2><small id="slotText" class="muted"></small></div>
+      <button type="button" class="modal-close" onclick="closeAdd()">×</button>
+    </div>
+    <form method="post" action="/schedule/add-cell" class="form-grid">
+      <input type="hidden" id="mTeacher" name="teacher_id">
+      <input type="hidden" id="mDay" name="day">
+      <input type="hidden" id="mPeriod" name="period">
+      <div><label>الفصل</label><select name="class_id" required>{% for c in classes %}<option value="{{c.id}}">{{c.name}}</option>{% endfor %}</select></div>
+      <div><label>المادة</label><select name="subject_id" required>{% for s in subjects %}<option value="{{s.id}}">{{s.name}}</option>{% endfor %}</select></div>
+      <div class="full"><button class="btn full-btn">إضافة وتثبيت الحصة</button></div>
+    </form>
+  </div>
+</div>
+<script>
+const scheduleDays={{days|tojson}};
+function openAdd(t,d,p,n){
+  document.getElementById('mTeacher').value=t; document.getElementById('mDay').value=d; document.getElementById('mPeriod').value=p;
+  document.getElementById('slotText').textContent=n+' · '+scheduleDays[d]+' · الحصة '+p;
+  document.getElementById('addModal').classList.add('open'); document.getElementById('addModal').setAttribute('aria-hidden','false');
+}
+function closeAdd(){document.getElementById('addModal').classList.remove('open');document.getElementById('addModal').setAttribute('aria-hidden','true')}
+document.getElementById('addModal').addEventListener('click',e=>{if(e.target.id==='addModal')closeAdd()});
+</script>
+{% endblock %}

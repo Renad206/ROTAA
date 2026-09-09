@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block body %}
+<div class="hero"><div class="eyebrow">PLANS & BILLING</div><h1>الاشتراك</h1><p>الباقة الحالية: <b>{{school.plan|upper}}</b> · الحالة: {{school.subscription_status}}</p></div>
+<div class="plans">
+{% for key,p in plans.items() %}
+<div class="plan {% if school.plan==key %}current-plan{% endif %}">
+  <h2>{{p.name}}</h2><div class="price">{{p.price}} <small>ريال/شهر</small></div><p>حتى {{p.users}} مستخدم</p>
+  <ul>{% if key=='basic' %}<li>إنشاء الجداول وإدارتها</li><li>القيود والتعديل اليدوي</li><li>الطباعة والتصدير</li>{% elif key=='pro' %}<li>كل مزايا Basic</li><li>الغياب والانتظار الذكي</li><li>استيراد Timetable</li><li>عدة مستخدمين للمدرسة</li>{% else %}<li>كل مزايا Pro</li><li>إشعارات وسجل متقدم</li><li>نسخ الجداول</li><li>صلاحيات موسعة</li>{% endif %}</ul>
+  {% if school.plan==key and school.subscription_status in ['active','trial'] %}<button class="btn alt" disabled>الباقة الحالية</button>{% elif pk and domain_ready %}<a class="btn" href="/checkout/{{key}}">اشترك الآن</a>{% endif %}
+</div>
+{% endfor %}
+</div>
+<section class="card"><h3>طرق الدفع</h3><div class="payment-methods"><span>Apple Pay</span><span>مدى</span><span>Visa</span><span>Mastercard</span></div></section>
+{% endblock %}

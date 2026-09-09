@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>ROTA</title>
+  <script>(function(){const t=localStorage.getItem('rota-theme')||'dark';document.documentElement.dataset.theme=t})();</script>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+{% if u %}
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="ROTA">R</a>
+    <nav class="nav">
+      <a href="/">⌂<span>الرئيسية</span></a>
+      <a href="/schedule">▦<span>الجدول</span></a>
+      <a href="/constraints">✓<span>القيود</span></a>
+      <a href="/absence">↻<span>الانتظار</span></a>
+      <a href="/import-timetable">⇧<span>Timetable</span></a>
+      <a href="/users">♙<span>المستخدمون</span></a>
+      <a href="/subscription">◈<span>الاشتراك</span></a>
+      <a href="/settings">⚙<span>الإعدادات</span></a>
+    </nav>
+    <div class="side-bottom">
+      <button class="theme-toggle" type="button" onclick="toggleTheme()" title="تبديل المظهر"><span class="theme-icon">☾</span></button>
+      <a class="logout-mini" href="/logout" title="خروج">↪</a>
+    </div>
+  </aside>
+  <main class="content">
+    <header class="topbar no-print">
+      <div>
+        <div class="eyebrow">ROTA • SCHOOL OPERATIONS</div>
+        <h1>{{ school.name if school else 'ROTA' }}</h1>
+        <p>{{ u.name }} · @{{ u.username }}</p>
+      </div>
+      <div class="actions">
+        <button class="btn secondary theme-wide" type="button" onclick="toggleTheme()">◐ المظهر</button>
+        <a class="btn secondary" href="/settings">الحساب والإعدادات</a>
+      </div>
+    </header>
+{% else %}
+<main>
+{% endif %}
+
+{% block body %}{% endblock %}
+
+{% if u %}
+  </main>
+</div>
+{% else %}
+</main>
+{% endif %}
+<script>
+function toggleTheme(){
+  const r=document.documentElement;
+  const n=r.dataset.theme==='dark'?'light':'dark';
+  r.dataset.theme=n;
+  localStorage.setItem('rota-theme',n);
+  document.querySelectorAll('.theme-icon').forEach(x=>x.textContent=n==='dark'?'☾':'☀');
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.theme-icon').forEach(x=>x.textContent=document.documentElement.dataset.theme==='dark'?'☾':'☀')
+});
+</script>
+</body>
+</html>
